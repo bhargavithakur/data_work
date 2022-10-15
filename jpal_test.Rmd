@@ -16,8 +16,10 @@ library("stringr")
 #1.2 Importing the two raw datasets 
 
 data_jpal_student <- read.csv("/Users/bhargavithakur/Desktop/r_test_j_pal/student_data.csv")
+#please change the location
 
 data_jpal_school <- read.csv("/Users/bhargavithakur/Desktop/r_test_j_pal/school_data.csv")
+#please change the location
 
 #summarizing data to find characterstics of raw data to check for any preliminary errors in the data 
 

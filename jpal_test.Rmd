@@ -1,0 +1,270 @@
+---
+title: "r_test"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#Loading appropriate libraries 
+library(tidyverse)                       # Install stringr package
+library("stringr")      
+
+
+#1.2 Importing the two raw datasets 
+
+data_jpal_student <- read.csv("/Users/bhargavithakur/Desktop/r_test_j_pal/student_data.csv")
+
+data_jpal_school <- read.csv("/Users/bhargavithakur/Desktop/r_test_j_pal/school_data.csv")
+
+#summarizing data to find characterstics of raw data to check for any preliminary errors in the data 
+
+summary(data_jpal_school)
+summary(data_jpal_student)
+
+
+#1.3 merging the two datasets based on the school IDs 
+
+data_jpal_total <-  merge(data_jpal_student, data_jpal_school ,by="schid")
+
+
+#looking for unique values cooresponding to school id in both datasets to identify which observations have been dropped in the merged dataset 
+unique(data_jpal_school$schid)
+unique(data_jpal_student$schid)
+
+#There are 40 observations dropped from the student database, as the school data does not have observations corresponding to school with "schid" = 145 and 3066. Similarly there are no observations for schid = 336 in the student data and observations for those in the total dataset is dropped. 
+
+
+```
+
+```{r cars}
+summary(cars)
+
+#Create a variable unique that combines the school id and the student number at that school. It should take value “10101” for the first student at school 101, “10102” for the second student at 101, and so on. What is the maximum value of the unique variable?
+
+#changing values of rows having numbers 1-9 to 01, 02,... 09 as shown below 
+
+data_jpal_total$student_number_school[data_jpal_total$student_number_school == 1] <- "01" 
+data_jpal_total$student_number_school[data_jpal_total$student_number_school == 2] <- "02" 
+data_jpal_total$student_number_school[data_jpal_total$student_number_school == 3] <- "03" 
+data_jpal_total$student_number_school[data_jpal_total$student_number_school == 4] <- "04" 
+data_jpal_total$student_number_school[data_jpal_total$student_number_school == 5] <- "05" 
+data_jpal_total$student_number_school[data_jpal_total$student_number_school == 6] <- "06" 
+data_jpal_total$student_number_school[data_jpal_total$student_number_school == 7] <- "07" 
+data_jpal_total$student_number_school[data_jpal_total$student_number_school == 8] <- "08" 
+data_jpal_total$student_number_school[data_jpal_total$student_number_school == 9] <- "09" 
+
+#changing the two columns into a column vector to allow for pasting values in the new column when combining schid numbers and student number at school. 
+
+data_jpal_total$student_number_school <- as.character(data_jpal_total$student_number_school)
+data_jpal_total$schid <- as.character(data_jpal_total$schid)
+
+#combining the school id and the student number at school , the new variable is called new_column as indicated below. 
+data_jpal_total$new_column <- paste(data_jpal_total$schid ,  data_jpal_total$student_number_school , sep = "")
+
+#changing the column of new_variable to a numeric vector to be able to find the maximum value. 
+data_jpal_total$new_column <- as.numeric(data_jpal_total$new_column)
+summary(data_jpal_total$new_column)
+
+#The maximum value is 33540 
+
+
+
+#2.2 Combine the date and time variables into one variable of the format: MM/DD/YYYY HH: MIN
+
+#changing the date, month, year, hour and time columns into character vectors 
+
+data_jpal_total$survdd <- as.character(data_jpal_total$survdd)
+data_jpal_total$survmo <- as.character(data_jpal_total$survmo)
+data_jpal_total$survyy <- as.character(data_jpal_total$survyy)
+data_jpal_total$survhhst <- as.character(data_jpal_total$survhhst)
+data_jpal_total$survminst <- as.character(data_jpal_total$survminst)
+
+
+#combining the month, date and year values separated by "/"
+
+data_jpal_total$date_time <- paste(data_jpal_total$survmo ,  data_jpal_total$survdd , data_jpal_total$survyy ,  sep = "/")
+
+#combining the hour with the MM/DD/YYYY format separated by a space 
+
+data_jpal_total$date_time <- paste(data_jpal_total$date_time ,  data_jpal_total$survhhst ,   sep = " ")
+
+#combining the minutes with the MM/DD/YYYY HH format seaprated by ":"
+
+data_jpal_total$date_time <- paste(data_jpal_total$date_time ,  data_jpal_total$survminst ,   sep = ":")
+
+
+
+#extra cleaning of dataset 
+
+data_jpal_total$gender[data_jpal_total$gender == " Male"] <- "Male"
+data_jpal_total$gender[data_jpal_total$gender == "Male "] <- "Male"
+data_jpal_total$gender[data_jpal_total$gender == "Female "] <- "Female"
+data_jpal_total$gender[data_jpal_total$gender == " Female"] <- "Female"
+data_jpal_total$gender[data_jpal_total$gender == "-999"] <- "-999"
+data_jpal_total$gender[data_jpal_total$gender == " -999"] <- "-999"
+
+unique(data_jpal_total$gender)
+unique(data_jpal_total$region_district)
+
+
+data_jpal_total$region_district[data_jpal_total$region_district == "8_Western"] <- "Western_8" #assumption: these two are same 
+data_jpal_total$region_district[data_jpal_total$region_district ==  "Western__5" | data_jpal_total$region_district ==  "5_Western"   ] <- "Western_5"  #assumption: these two are same 
+data_jpal_total$region_district[data_jpal_total$region_district ==  "Western__4"  | data_jpal_total$region_district ==  "4_Western"   ] <- "Western_4" 
+data_jpal_total$region_district[data_jpal_total$region_district ==  "2_Western" | data_jpal_total$region_district ==  "Western__2" | data_jpal_total$region_district ==   "Western_2 "  ] <- "Western_2" 
+data_jpal_total$region_district[data_jpal_total$region_district ==  "10_Western"] <- "Western_10"
+
+data_jpal_total$region_district[data_jpal_total$region_district ==  "6_Western"] <- "Western_6"  
+data_jpal_total$region_district[data_jpal_total$region_district ==  "8_Greater Accra" | data_jpal_total$region_district ==  "Greater Accra__8" ] <- "Greater Accra_8"  
+data_jpal_total$region_district[data_jpal_total$region_district ==  "10_Greater Accra" | data_jpal_total$region_district == "Greater Accra__10"] <- "Greater Accra_10" 
+
+data_jpal_total$region_district[data_jpal_total$region_district ==  "1_Western"] <- "Western_1"  
+
+data_jpal_total$region_district[data_jpal_total$region_district ==   "7_Western" ] <- "Western_7"  
+
+data_jpal_total$region_district[data_jpal_total$region_district ==   "Volta__12" ] <-  "Volta_12"
+
+data_jpal_total$region_district[data_jpal_total$region_district ==   "4_Volta"  ] <-  "Volta_4"
+
+data_jpal_total$region_district[data_jpal_total$region_district ==    "8_Volta"  ] <-  "Volta_8" 
+
+data_jpal_total$region_district[data_jpal_total$region_district ==     "Volta__3"  ] <-  "Volta_3" 
+
+data_jpal_total$region_district[data_jpal_total$region_district ==    "-999 "   ] <- "-999"  
+
+unique(data_jpal_total$region_district)
+
+
+
+## Including Plots
+
+
+
+```
+```{r}
+
+#3.1 What is the average value of savings at baseline? Round to 1 decimal point.
+
+mean(data_jpal_total$saveamt)
+
+
+#3.2 What is the average value of savings among men in the western region of Ghana at the endline? Round to 1 decimal point.
+
+#assuming western region is all regions starting with the prefix "Western" , selecting columns whose region is western 
+
+data_western <- data_jpal_total[str_detect(data_jpal_total$region_district, "Western"), ]  # Extract matching rows with str_detect
+head(data_western)
+names(data_western)
+
+
+data_western$gender <- as.character(data_western$gender)
+data_western <- data_western %>% filter(data_western$gender == "Male")
+
+mean(data_western$end_saveamt)
+
+
+#3.3 How many women are in the Aflatoun treatment group?
+unique(data_jpal_total$samp)
+
+data_aflatoun <- data_jpal_total %>% filter(data_jpal_total$samp == "Aflatoun")
+
+data_aflatoun %>% count(gender)
+
+```
+
+```{r}
+
+#3.4 Test whether the treatment arms are balanced on relevant covariates using an appropriate significance test. Use your results to answer the following questions:
+
+
+#removing na values from the data 
+
+data_jpal_total <- na.omit(data_jpal_total)
+
+#creating dummies for the treatment groups 
+data_jpal_total <- fastDummies::dummy_cols(data_jpal_total , select_columns = "samp")
+
+names(data_jpal_total)
+
+balance_2 <- lm(samp_Aflatoun ~ gender ,  data_jpal_total)
+balance_3 <- lm(samp_Aflatoun ~ saveamt ,  data_jpal_total)
+balance_4 <- lm(samp_Aflatoun ~ saving_attitude_index ,  data_jpal_total)
+balance_5 <- lm(samp_Aflatoun ~ region_district ,  data_jpal_total)
+balance_6 <- lm(samp_Aflatoun ~ date_time ,  data_jpal_total)
+balance_7 <- lm(samp_Control ~ gender, data_jpal_total)
+balance_8 <- lm(samp_Control ~ region_district, data_jpal_total)
+balance_9 <- lm(samp_SFE ~ region_district, data_jpal_total)
+
+#getting the coefficients for the above balanced tests 
+#summary(balance_2)
+#summary(balance_3)
+#summary(balance_4)
+#summary(balance_5)
+#summary(balance_6)
+##summary(balance_7)
+#summary(balance_8)
+
+
+
+#The dataset is not balanced in the variable region_district 
+
+
+#According to the balanced tests conducted, the treatment arms are not balanced in either of the regions 
+
+
+
+
+```
+```{r}
+
+#4.1 What is the effect of receiving either of the treatments on the amount saved by students? Round to 2 decimal points. Use the appropriate regression to estimate this impact.
+
+
+#Because the treatment and control groups are not balanced in the region district we include it as a OBV 
+names(data_jpal_total)
+regression_1 <- lm(end_saveamt ~ samp_Aflatoun + samp_SFE + region_district , data_jpal_total)
+summary(regression_1)
+
+
+#4.2 Run regressions to estimate the impact of the two treatments on the saving amount and the saving attitude.
+
+
+regression_2 <- lm(end_saveamt ~ samp_Aflatoun + region_district , data_jpal_total)
+regression_3 <- lm(end_saveamt ~ samp_SFE+ region_district  , data_jpal_total)
+regression_4 <- lm(end_saving_attitude_index ~ samp_Aflatoun + region_district  , data_jpal_total)
+regression_5 <- lm(end_saving_attitude_index ~ samp_SFE + region_district , data_jpal_total)
+
+
+summary(regression_2)
+summary(regression_3)
+summary(regression_4)
+summary(regression_5)
+
+
+#4.3 Estimate the differential effect of the treatment on the savings amount by gender
+
+data_males <- data_jpal_total %>% filter(data_jpal_total$gender == "Male")
+data_females <- data_jpal_total %>% filter(data_jpal_total$gender == "Female")
+regression_6 <- lm(end_saveamt ~ samp_SFE +  samp_Aflatoun + region_district , data_males)
+regression_7 <- lm(end_saveamt ~ samp_SFE +  samp_Aflatoun + region_district, data_females)
+summary(regression_6) 
+summary(regression_7)   
+
+# 4.3a effect of the Aflatoun treatment on the amount of savings among women
+
+regression_8 <- lm(end_saveamt ~  samp_Aflatoun + region_district , data_females)
+summary(regression_8)
+ 
+
+#4.3b What is the effect of the SFE treatment on the amount of savings among males
+
+regression_9 <- lm(end_saveamt ~  samp_SFE + region_district, data_males)
+summary(regression_9)
+
+
+
+write.csv(data_jpal_total,"/Users/bhargavithakur/Desktop/r_test_j_pal/edited.csv", row.names = FALSE)
+```
+
